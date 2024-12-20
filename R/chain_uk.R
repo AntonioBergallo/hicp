@@ -11,21 +11,21 @@
 chain_uk <- function(df, year) {
   
   data <- df %>% 
-    select(date, laspey)
+    select(date, laspeyres)
   
   base_year_chain <- data %>% 
     filter(year(date) == year) %>% 
-    mutate(rechain = case_when(month(date) != 1 ~ laspey*laspey[month(date) == 1]/100,
-                               TRUE ~ laspey)) %>% 
+    mutate(rechain = case_when(month(date) != 1 ~ laspeyres*laspeyres[month(date) == 1]/100,
+                               TRUE ~ laspeyres)) %>% 
     mutate(average = mean(rechain)) %>% 
     reframe(chained = rechain/average*100,
             .by = date)
   
   data_2 <- full_join(data, base_year_chain) %>% 
-    mutate(chained = case_when(year(date) == year-1 & month(date) == 12 ~ 100/lead(laspey)*lead(chained),
-                               year(date) == year+1 & month(date) == 1 ~ laspey*lag(chained)/100,
+    mutate(chained = case_when(year(date) == year-1 & month(date) == 12 ~ 100/lead(laspeyres)*lead(chained),
+                               year(date) == year+1 & month(date) == 1 ~ laspeyres*lag(chained)/100,
                                TRUE ~ chained)) %>% 
-    mutate(chained = case_when(year(date) == year-1 & month(date) != 12 ~ laspey/laspey[year(date) == year-1 & month(date) == 12]*chained[year(date) == year-1 & month(date) == 12],
+    mutate(chained = case_when(year(date) == year-1 & month(date) != 12 ~ laspeyres/laspeyres[year(date) == year-1 & month(date) == 12]*chained[year(date) == year-1 & month(date) == 12],
                                TRUE ~ chained)) %>% 
     na.trim("left")
   
@@ -35,7 +35,7 @@ chain_uk <- function(df, year) {
       
     } else if(month(data_2$date[[i]]) == 1) {
       
-      data_2$chained[[i]] <- data_2$laspey[[i]]*data_2$chained[[i-1]]/100
+      data_2$chained[[i]] <- data_2$laspeyres[[i]]*data_2$chained[[i-1]]/100
       
     } else {
       
@@ -44,7 +44,7 @@ chain_uk <- function(df, year) {
         filter(year(date) == year & month(date) == 1) %>% 
         pull(chained)
       
-      data_2$chained[[i]] <- data_2$laspey[[i]] * value/100
+      data_2$chained[[i]] <- data_2$laspeyres[[i]] * value/100
       
     }
     

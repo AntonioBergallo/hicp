@@ -1,4 +1,3 @@
-
 #' Aggregate UK Data
 #'
 #' This function aggregates UK data based on a specified level and COICOP codes.
@@ -37,21 +36,21 @@ aggregate_uk <- function(df, level, agg_name, coicops = df$coicop){
     ungroup %>% 
     mutate(weighted = dec_ratio*w) %>% 
     arrange(date) %>% 
-    reframe(laspey = (sum(weighted)/sum(w)),
+    reframe(laspeyres = (sum(weighted)/sum(w)),
             w0 = sum(w),
             grp = agg_name,
             .by = date) 
   
   
   
-  db_agg <- data.table(db_cpi_item_raw_x_jan)[,aggregate(x=jan_ratio, w0=w, grp=coicop, index=laspey),
+  db_agg <- data.table(db_cpi_item_raw_x_jan)[,aggregate(x=jan_ratio, w0=w, grp=coicop, index=laspeyres),
                                               by="date"] %>% 
     tibble %>% 
     filter(grp == "00") %>% 
     mutate(grp = agg_name) %>% 
     bind_rows(db_cpi_item_raw_jan) %>% 
     arrange(date) %>% 
-    mutate(laspey = laspey*100) 
+    mutate(laspeyres = laspeyres*100) 
   
   db_final <- chain_uk(db_agg, 2018) %>% 
     mutate(value_yoy = 100*(chained/lag(chained,12)-1),
